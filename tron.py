@@ -8,6 +8,13 @@ SIZE = 100
 colors = [curses.COLOR_BLUE, curses.COLOR_GREEN, curses.COLOR_RED,
           curses.COLOR_YELLOW, curses.COLOR_MAGENTA]
 
+horizontal = ["LEFT", "RIGHT"]
+vertical = ["UP", "DOWN"]
+directions = horizontal + vertical
+
+possible_directions = {i: vertical for i in horizontal}
+possible_directions.update({i: horizontal for i in vertical})
+
 
 class Board(object):
     def __init__(self, players_size=4):
@@ -19,8 +26,11 @@ class Board(object):
         for i in range(int(players_size / 2)):
             players.extend(self.player_set(players))
 
-        self.players = [{"color": count, "points": [i]}
-                        for count, i in enumerate(players)]
+        _player = lambda count, point: {"color": count + 1,
+                                        "points": [point],
+                                        "direction": directions[randint(0, 3)]}
+
+        self.players = [_player(count, i) for count, i in enumerate(players)]
         print(self.players)
 
     def random_player(self):
@@ -56,10 +66,11 @@ class Game(object):
         stdscr = curses.initscr()
         curses.noecho()
         curses.cbreak()
+        curses.curs_set(0)
 
         for count, i in enumerate(colors):
             curses.start_color()
-            curses.init_pair(count+1, i, curses.COLOR_BLACK)
+            curses.init_pair(count + 1, i, curses.COLOR_BLACK)
 
         try:
             self.loop(stdscr)
@@ -73,7 +84,7 @@ class Game(object):
         for player in self.board.players:
             color = player["color"]
             for point in player["points"]:
-                stdscr.addstr(int(point[0] / 2), point[1], "*", curses.color_pair(color+1))
+                stdscr.addstr(int(point[0] / 2), point[1], "*", curses.color_pair(color))
 
         stdscr.keypad(True)
 
