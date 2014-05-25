@@ -16,22 +16,30 @@ possible_directions = {i: vertical for i in horizontal}
 possible_directions.update({i: horizontal for i in vertical})
 
 
+
+class Player(object):
+
+
+    def __init__(self, color, points, direction=None):
+        self.color = color
+        self.points = points
+        self.direction = direction or directions[randint(0, 3)]
+
+
 class Board(object):
-    def __init__(self, players_size=4):
-        if players_size not in (2, 4, 6):
+    def __init__(self, players=None, player_size=2):
+        if player_size not in (2, 4, 6):
             raise ValueError("Players must be one of the following: 2, 4, 6")
 
         self.board = [i for i in range(0, SIZE) for j in range(0, SIZE)]
+        self.players = players or self.make_random_players(player_size)
+
+    def make_random_players(self, player_size):
         players = []
-        for i in range(int(players_size / 2)):
+        for i in range(int(player_size / 2)):
             players.extend(self.player_set(players))
 
-        _player = lambda count, point: {"color": count + 1,
-                                        "points": [point],
-                                        "direction": directions[randint(0, 3)]}
-
-        self.players = [_player(count, i) for count, i in enumerate(players)]
-        print(self.players)
+        return [Player(count, [points]) for count, points in enumerate(players)]
 
     def random_player(self):
         return randint(0, SIZE - 1), randint(0, SIZE - 1)
@@ -51,9 +59,11 @@ class Board(object):
 
     def player_set(self, skip=None):
         xa, ya = self.random_player()
+
         while self.player_exists(xa, ya, skip):
             xa, ya = self.random_player()
         xb, yb = SIZE - xa, SIZE - ya
+
         return (xa, ya), (xb, yb)
 
 
@@ -82,8 +92,8 @@ class Game(object):
     def loop(self, stdscr):
 
         for player in self.board.players:
-            color = player["color"]
-            for point in player["points"]:
+            color = player.color
+            for point in player.points:
                 stdscr.addstr(int(point[0] / 2), point[1], "*", curses.color_pair(color))
 
         stdscr.keypad(True)
@@ -99,4 +109,4 @@ class Game(object):
 
 
 Game()
-#  python ~/PycharmProjects/python-tron/tron.py
+# python ~/PycharmProjects/pytron/tron.py
